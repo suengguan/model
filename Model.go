@@ -1,7 +1,7 @@
 package model
 
 import (
-	"config"
+	// "config"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -433,10 +433,14 @@ type KubeService struct {
 	Spec       KubeServiceSpec      `json:"spec"`     // 详细信息
 }
 
-func InitEnv() error {
+func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, dbconnum int64) error {
 	var err error
 	var dataSource string
 
+	beego.Debug("init env")
+
+	// register model
+	beego.Debug("-->step1 register model")
 	orm.RegisterModel(new(User),
 		new(Project),
 		new(Job),
@@ -447,28 +451,119 @@ func InitEnv() error {
 		new(Algorithm),
 		new(Action))
 
-	beego.Debug("register driver", config.DB_DRIVER_NAME)
-	err = orm.RegisterDriver(config.DB_DRIVER_NAME, orm.DRMySQL)
-	if err == nil {
-		beego.Debug("register driver", config.DB_DRIVER_NAME, "success")
-
-		dataSource = config.DB_ACCOUNT + "@" + config.DB_ACCESS_ADDR + "/" + config.DB_NAME + "?charset=utf8"
-		beego.Debug("register data base", dataSource)
-		err = orm.RegisterDataBase("default", config.DB_DRIVER_NAME, dataSource)
-		if err == nil {
-			beego.Debug("register data base", dataSource, "success")
-			orm.RunCommand()
-
-			orm.RunSyncdb("default", false, true)
-		} else {
-			beego.Debug("register data base", dataSource, "failed")
-		}
-	} else {
-		beego.Debug("register driver", config.DB_DRIVER_NAME, "failed")
+	// register driver
+	beego.Debug("-->step2 register driver")
+	err = orm.RegisterDriver(dbdriver, orm.DRMySQL)
+	if err != nil {
+		beego.Debug("register driver", dbdriver, "failed")
+		return err
 	}
+	beego.Debug("success")
+
+	// register default database(mysql)
+	beego.Debug("-->step3 register default database(mysql)")
+	dataSource = dbaccount + "@" + dbaddr + "/mysql?charset=utf8"
+	err = orm.RegisterDataBase("default", dbdriver, dataSource)
+	if err != nil {
+		beego.Debug("register data base", dataSource, "failed")
+		return err
+	}
+	beego.Debug("success")
+
+	// create database new database
+	beego.Debug("-->step4 create new database")
+	o := orm.NewOrm()
+	_, err = o.Raw("create database if not exists " + dbname + " character set utf8").Exec()
+	if err != nil {
+		beego.Debug("create database", dbname, "failed!")
+		return err
+	}
+	beego.Debug("success")
+
+	// register new database
+	beego.Debug("-->step5 register database new database")
+	dataSource = dbaccount + "@" + dbaddr + "/" + dbname + "?charset=utf8"
+	err = orm.RegisterDataBase(dbname, dbdriver, dataSource)
+	if err != nil {
+		beego.Debug("register new database", dbname, "failed!")
+		return err
+	}
+	beego.Debug("success")
+
+	//
+	orm.RunCommand()
+
+	//
+	orm.RunSyncdb(dbname, false, true)
 
 	return err
 }
+
+// func InitEnv() error {
+// 	var err error
+// 	var dataSource string
+
+// 	beego.Debug("init env")
+
+// 	// register model
+// 	beego.Debug("-->step1 register model")
+// 	orm.RegisterModel(new(User),
+// 		new(Project),
+// 		new(Job),
+// 		new(Module),
+// 		new(Resource),
+// 		new(Pod),
+// 		new(Log),
+// 		new(Algorithm),
+// 		new(Action))
+
+// 	// register driver
+// 	beego.Debug("-->step2 register driver")
+// 	err = orm.RegisterDriver(config.DB_DRIVER_NAME, orm.DRMySQL)
+// 	if err != nil {
+// 		beego.Debug("register driver", config.DB_DRIVER_NAME, "failed")
+// 		return err
+// 	}
+// 	beego.Debug("success")
+
+// 	// register default database(mysql)
+// 	beego.Debug("-->step3 register default database(mysql)")
+// 	dataSource = config.DB_ACCOUNT + "@" + config.DB_ACCESS_ADDR + "/mysql?charset=utf8"
+// 	err = orm.RegisterDataBase("default", config.DB_DRIVER_NAME, dataSource)
+// 	if err != nil {
+// 		beego.Debug("register data base", dataSource, "failed")
+// 		return err
+// 	}
+// 	beego.Debug("success")
+
+// 	// create database new database
+// 	beego.Debug("-->step4 create new database")
+// 	o := orm.NewOrm()
+// 	_, err = o.Raw("create database if not exists " + config.DB_NAME + " character set utf8").Exec()
+// 	if err != nil {
+// 		beego.Debug("create database", config.DB_NAME, "failed!")
+// 		return err
+// 	}
+// 	beego.Debug("success")
+
+// 	// register new database
+// 	beego.Debug("-->step5 register database new database")
+// 	dataSource = config.DB_ACCOUNT + "@" + config.DB_ACCESS_ADDR + "/" + config.DB_NAME + "?charset=utf8"
+// 	err = orm.RegisterDataBase(config.DB_NAME, config.DB_DRIVER_NAME, dataSource)
+// 	if err != nil {
+// 		beego.Debug("register new database", config.DB_NAME, "failed!")
+// 		return err
+// 	}
+// 	beego.Debug("success")
+
+// 	//
+// 	orm.RunCommand()
+
+// 	//
+// 	orm.RunSyncdb(config.DB_NAME, false, true)
+
+// 	return err
+// }
 
 ////============================================================== influxdb 监控数据
 type InfluxdbResponseData struct {
