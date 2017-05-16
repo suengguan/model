@@ -452,7 +452,7 @@ func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, db
 		new(Action))
 
 	// register driver
-	beego.Debug("-->step2 register driver")
+	beego.Debug("-->step2 register driver:", dbdriver)
 	err = orm.RegisterDriver(dbdriver, orm.DRMySQL)
 	if err != nil {
 		beego.Debug("register driver", dbdriver, "failed")
@@ -461,8 +461,8 @@ func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, db
 	beego.Debug("success")
 
 	// register default database(mysql)
-	beego.Debug("-->step3 register default database(mysql)")
 	dataSource = dbaccount + "@" + dbaddr + "/mysql?charset=utf8"
+	beego.Debug("-->step3 register default database(mysql):", dataSource)
 	err = orm.RegisterDataBase("default", dbdriver, dataSource)
 	if err != nil {
 		beego.Debug("register data base", dataSource, "failed")
@@ -471,7 +471,7 @@ func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, db
 	beego.Debug("success")
 
 	// create database new database
-	beego.Debug("-->step4 create new database")
+	beego.Debug("-->step4 create new database:", dbname)
 	o := orm.NewOrm()
 	_, err = o.Raw("create database if not exists " + dbname + " character set utf8").Exec()
 	if err != nil {
@@ -481,7 +481,7 @@ func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, db
 	beego.Debug("success")
 
 	// register new database
-	beego.Debug("-->step5 register database new database")
+	beego.Debug("-->step5 register new database:", dbname)
 	dataSource = dbaccount + "@" + dbaddr + "/" + dbname + "?charset=utf8"
 	err = orm.RegisterDataBase(dbname, dbdriver, dataSource)
 	if err != nil {
