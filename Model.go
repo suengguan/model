@@ -53,8 +53,8 @@ type User struct {
 	Role              int        `json:"role" orm:"column(ROLE)"`
 	Resource          *Resource  `json:"resource" orm:"reverse(one)"`
 	Projects          []*Project `json:"projects" orm:"reverse(many)"`
-	Logs              []*Log     `json:"logs" orm:"reverse(many)"`
 	Actions           []*Action  `json:"actions" orm:"reverse(many)"`
+	//Logs              []*Log     `json:"logs" orm:"reverse(many)"`
 }
 
 func (this *User) TableName() string {
@@ -155,27 +155,27 @@ func (this *Algorithm) TableName() string {
 	return TN_ALGORITHM
 }
 
-// ========================================= log
-/*
-docker 原生支持的log 通用格式为
-------------------
-| time | content |
-------------------
-*/
+// // ========================================= log
+// /*
+// docker 原生支持的log 通用格式为
+// ------------------
+// | time | content |
+// ------------------
+// */
 
-type Log struct {
-	Id        int64  `json:"id" orm:"column(ID)"`
-	Time      int64  `json:"time" orm:"column(TIME)"`
-	SessionId string `json:"sessionId" orm:"column(SESSION_ID)"`
-	User      *User  `json:"user" orm:"column(USER_ID);rel(fk)"` //设置一对多关系
-	DevType   int    `json:"devType" orm:"column(DEV_TYPE)"`
-	Type      int    `json:"type" orm:"column(TYPE)"`
-	Content   string `json:"content" orm:"column(CONTENT)"` // log内容
-}
+// type Log struct {
+// 	Id        int64  `json:"id" orm:"column(ID)"`
+// 	Time      int64  `json:"time" orm:"column(TIME)"`
+// 	SessionId string `json:"sessionId" orm:"column(SESSION_ID)"`
+// 	User      *User  `json:"user" orm:"column(USER_ID);rel(fk)"` //设置一对多关系
+// 	DevType   int    `json:"devType" orm:"column(DEV_TYPE)"`
+// 	Type      int    `json:"type" orm:"column(TYPE)"`
+// 	Content   string `json:"content" orm:"column(CONTENT)"` // log内容
+// }
 
-func (this *Log) TableName() string {
-	return TN_LOG
-}
+// func (this *Log) TableName() string {
+// 	return TN_LOG
+// }
 
 type Action struct {
 	Id        int64  `json:"id" orm:"column(ID)"`
@@ -447,7 +447,7 @@ func InitEnv(dbname string, dbdriver string, dbaccount string, dbaddr string, db
 		new(Module),
 		new(Resource),
 		new(Pod),
-		new(Log),
+		//new(Log),
 		new(Algorithm),
 		new(Action))
 
